@@ -1,0 +1,77 @@
+mql5
+/*
+Program Name: DoubleSuperTrend WTC
+Developer's Site: forexroboteasy.com
+Development: Forex Robot Easy Team
+*/
+
+// Include necessary libraries and headers
+
+#include <Trade\Trade.mqh>
+#include <CustomIndicator\DoubleSuperTrend.mqh>
+
+// Define constants
+
+#define LOT_SIZE 0.1
+#define STOP_LOSS 100
+#define TAKE_PROFIT 200
+
+// Initialize objects and variables
+
+CTrade trade;
+CDoubleSuperTrend doubleSuperTrend;
+
+// Define function to execute trades
+
+void ExecuteTrade(int direction)
+{
+   double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   
+   double stopLoss = direction == TRADE_ACTION_BUY ? bid - STOP_LOSS * _Point : ask + STOP_LOSS * _Point;
+   double takeProfit = direction == TRADE_ACTION_BUY ? bid + TAKE_PROFIT * _Point : ask - TAKE_PROFIT * _Point;
+   
+   trade.BuyStop(LOT_SIZE, 0, ask, stopLoss, takeProfit, 'Buy order', 0, 0);
+   trade.SellStop(LOT_SIZE, 0, bid, stopLoss, takeProfit, 'Sell order', 0, 0);
+}
+
+// Define function to check trend and execute trades
+
+void CheckTrendAndTrade()
+{
+   int trend = doubleSuperTrend.CheckTrend();
+   
+   if(trend == TREND_UP)
+   {
+      ExecuteTrade(TRADE_ACTION_BUY);
+   }
+   else if(trend == TREND_DOWN)
+   {
+      ExecuteTrade(TRADE_ACTION_SELL);
+   }
+}
+
+// Initialize the trading robot
+
+void OnStart()
+{
+   // Set up the DoubleSuperTrend indicator
+   doubleSuperTrend.Init();
+   
+   // Set up the trend color cloud feature
+   doubleSuperTrend.SetColorCloud();
+   
+   // Check trend and execute trades
+   CheckTrendAndTrade();
+}
+
+// Perform trades based on trend changes
+
+void OnTick()
+{
+   // Update the DoubleSuperTrend indicator
+   doubleSuperTrend.Update();
+   
+   // Check trend and execute trades
+   CheckTrendAndTrade();
+}
